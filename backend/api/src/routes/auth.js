@@ -5,7 +5,7 @@ const rateLimit = require('express-rate-limit');
 const pool = require('../db/pool');
 
 const router = express.Router();
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme-secret';
+const JWT_SECRET = process.env.JWT_SECRET || 'changeme-secret'; // must be overridden via JWT_SECRET env var in production
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,

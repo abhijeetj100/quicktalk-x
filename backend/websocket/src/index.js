@@ -4,6 +4,10 @@ const jwt = require('jsonwebtoken');
 const { createClient } = require('redis');
 const { Pool } = require('pg');
 
+if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET environment variable is required in production');
+  process.exit(1);
+}
 const JWT_SECRET = process.env.JWT_SECRET || 'changeme-secret';
 const REDIS_URL = process.env.REDIS_URL || 'redis://localhost:6379';
 const DATABASE_URL = process.env.DATABASE_URL || 'postgresql://chat_user:chat_password@localhost:5432/chat_app';
