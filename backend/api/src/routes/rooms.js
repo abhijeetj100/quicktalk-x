@@ -63,11 +63,18 @@ router.post('/', async (req, res) => {
 router.get('/:id/messages', async (req, res) => {
   const { before, limit = 50 } = req.query;
   try {
+    const memberCheck = await pool.query(
+      'SELECT 1 FROM room_members WHERE room_id = $1 AND user_id = $2 LIMIT 1',
+      [req.params.id, req.user.id]
+    );
+    if (memberCheck.rows.length === 0) {
+      return res.status(403).json({ error: 'Forbidden' });
+    }
     let query, params;
     if (before) {
       query = `SELECT m.*, u.username, u.display_name FROM messages m
                JOIN users u ON m.user_id = u.id
-               WHERE m.room_id = $1 AND m.is_deleted = false AND m.created_at < $2
+               WHERE m.room_id = $1 AND m.is_deleted = false AND m.created_at < $2::timestamptz
                ORDER BY m.created_at DESC LIMIT $3`;
       params = [req.params.id, before, Math.min(parseInt(limit), 100)];
     } else {

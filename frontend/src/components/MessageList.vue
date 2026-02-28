@@ -20,16 +20,28 @@ const emit = defineEmits(['load-more'])
 const listEl = ref(null)
 const bottomEl = ref(null)
 const loading = ref(false)
+const isAtBottom = ref(true)
 
 watch(() => props.messages?.length, async (newLen, oldLen) => {
-  if (newLen > oldLen) {
-    await nextTick()
-    bottomEl.value?.scrollIntoView({ behavior: 'smooth' })
+  const isInitialLoad = oldLen == null || oldLen === 0
+  if (newLen > (oldLen || 0)) {
+    loading.value = false
+    if (isInitialLoad || isAtBottom.value) {
+      await nextTick()
+      bottomEl.value?.scrollIntoView({ behavior: 'smooth' })
+    }
   }
 })
 
 function handleScroll() {
-  if (listEl.value.scrollTop === 0 && props.messages?.length > 0) {
+  if (!listEl.value || loading.value) return
+
+  const el = listEl.value
+  const distanceFromBottom = el.scrollHeight - (el.scrollTop + el.clientHeight)
+  isAtBottom.value = distanceFromBottom <= 50
+
+  if (el.scrollTop === 0 && props.messages?.length > 0) {
+    loading.value = true
     emit('load-more', props.messages[0]?.created_at)
   }
 }

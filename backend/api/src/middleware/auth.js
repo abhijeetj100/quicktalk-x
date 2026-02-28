@@ -1,12 +1,14 @@
 const jwt = require('jsonwebtoken');
 
-if (process.env.NODE_ENV === 'production' && !process.env.JWT_SECRET) {
-  console.error('FATAL: JWT_SECRET environment variable is required in production');
-  process.exit(1);
-}
-const JWT_SECRET = process.env.JWT_SECRET || 'changeme-secret';
+const JWT_SECRET =
+  process.env.JWT_SECRET ||
+  (process.env.NODE_ENV === 'production' ? null : 'changeme-secret');
 
 function authMiddleware(req, res, next) {
+  if (!JWT_SECRET) {
+    console.error('FATAL: JWT_SECRET environment variable is required in production');
+    return res.status(500).json({ error: 'Server misconfiguration' });
+  }
   const authHeader = req.headers.authorization;
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Unauthorized' });

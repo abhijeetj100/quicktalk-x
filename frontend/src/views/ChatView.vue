@@ -29,6 +29,7 @@
         <h3>Create Room</h3>
         <input v-model="newRoomName" placeholder="Room name" />
         <input v-model="newRoomDesc" placeholder="Description (optional)" />
+        <p v-if="createRoomError" class="modal-error">{{ createRoomError }}</p>
         <div class="modal-actions">
           <button @click="handleCreateRoom">Create</button>
           <button @click="showCreateRoom = false">Cancel</button>
@@ -53,6 +54,7 @@ const chat = useChatStore()
 const showCreateRoom = ref(false)
 const newRoomName = ref('')
 const newRoomDesc = ref('')
+const createRoomError = ref('')
 
 onMounted(async () => {
   if (!auth.token) return router.push('/login')
@@ -66,10 +68,15 @@ onUnmounted(() => {
 
 async function handleCreateRoom() {
   if (!newRoomName.value.trim()) return
-  await chat.createRoom(newRoomName.value.trim(), newRoomDesc.value.trim())
-  newRoomName.value = ''
-  newRoomDesc.value = ''
-  showCreateRoom.value = false
+  createRoomError.value = ''
+  try {
+    await chat.createRoom(newRoomName.value.trim(), newRoomDesc.value.trim())
+    newRoomName.value = ''
+    newRoomDesc.value = ''
+    showCreateRoom.value = false
+  } catch (err) {
+    createRoomError.value = err.message
+  }
 }
 
 function handleLogout() {
@@ -102,4 +109,5 @@ function handleLogout() {
 .modal-actions { display: flex; gap: 0.5rem; }
 .modal-actions button { flex: 1; padding: 0.5rem; border: none; border-radius: 4px; cursor: pointer; }
 .modal-actions button:first-child { background: #1a73e8; color: white; }
+.modal-error { color: #d32f2f; font-size: 0.875rem; margin-bottom: 0.5rem; }
 </style>
